@@ -1,0 +1,18 @@
+# Node / CDK
+**/node_modules/
+**/cdk.out/
+**/.cdk.staging/
+
+# Local env / secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python venv (not used for this Node/CDK project)
+.venv/
+
+# Local tools / artifacts
+tools/
