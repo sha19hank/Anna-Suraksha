@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ddbDoc } from '../shared/dynamo';
 import { badRequest, json } from '../shared/http';
 import { sendSms } from '../shared/sms';
+import { info, warn } from '../shared/logger';
 
 const SURPLUS_TABLE_NAME = process.env.SURPLUS_TABLE_NAME;
 const NGO_TABLE_NAME = process.env.NGO_TABLE_NAME;
@@ -13,6 +14,9 @@ const DRY_RUN_SMS = String(process.env.DRY_RUN_SMS ?? 'true').toLowerCase() === 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (!SURPLUS_TABLE_NAME) return json(500, { message: 'Missing SURPLUS_TABLE_NAME' });
   if (!NGO_TABLE_NAME) return json(500, { message: 'Missing NGO_TABLE_NAME' });
+
+  const requestId = event.requestContext?.requestId;
+  info('surplus.request', { requestId });
 
   const body = event.body ? JSON.parse(event.body) : null;
   if (!body?.restaurantName) return badRequest('restaurantName is required');
@@ -56,8 +60,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   for (const ngo of ngos) {
     if (!ngo.phoneNumber) continue;
-    await sendSms({ phoneNumber: ngo.phoneNumber, message: msg, dryRun: DRY_RUN_SMS });
+    try {
+      await sendSms({ phoneNumber: ngo.phoneNumber, message: msg, dryRun: DRY_RUN_SMS });
+    } catch (e) {
+      warn('surplus.sms_failed', { requestId, error: e instanceof Error ? e.message : e });
+    }
   }
 
+  info('surplus.result', { requestId, listingId, notified: ngos.length });
   return json(200, { status: 'OK', listingId, notified: ngos.length });
 };

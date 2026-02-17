@@ -1,12 +1,12 @@
 import type { Handler } from 'aws-lambda';
 import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
 import { ddbDoc } from '../shared/dynamo';
-
-const sns = new SNSClient({});
+import { sendSms } from '../shared/sms';
+import { info, warn } from '../shared/logger';
 
 const ANALYSES_TABLE_NAME = process.env.ANALYSES_TABLE_NAME;
+const DRY_RUN_SMS = String(process.env.DRY_RUN_SMS ?? 'true').toLowerCase() === 'true';
 
 export const handler: Handler = async (event) => {
   if (!ANALYSES_TABLE_NAME) throw new Error('Missing ANALYSES_TABLE_NAME');
@@ -17,13 +17,18 @@ export const handler: Handler = async (event) => {
 
   if (!analysisId) throw new Error('Missing analysisId');
 
+  info('reminder.invoke', { analysisId, hasPhone: Boolean(phoneNumber), expiryAtIso });
+
   if (phoneNumber) {
-    await sns.send(
-      new PublishCommand({
-        PhoneNumber: phoneNumber,
-        Message: `Reminder from Anna Suraksha: estimated expiry time is ${expiryAtIso ?? 'soon'}.`,
-      })
-    );
+    try {
+      await sendSms({
+        phoneNumber,
+        dryRun: DRY_RUN_SMS,
+        message: `Reminder from Anna Suraksha: estimated expiry time is ${expiryAtIso ?? 'soon'}.`,
+      });
+    } catch (e) {
+      warn('reminder.sms_failed', { analysisId, error: e instanceof Error ? e.message : e });
+    }
   }
 
   await ddbDoc.send(

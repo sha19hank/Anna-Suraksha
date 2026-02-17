@@ -46,6 +46,12 @@ export class InfraStack extends cdk.Stack {
       timeToLiveAttribute: 'ttl',
     });
 
+    const metricsTable = new dynamodb.Table(this, 'MetricsTable', {
+      partitionKey: { name: 'metricName', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     const ngoTable = new dynamodb.Table(this, 'NgoContactsTable', {
       partitionKey: { name: 'region', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'contactId', type: dynamodb.AttributeType.STRING },
@@ -74,6 +80,7 @@ export class InfraStack extends cdk.Stack {
       logRetention: logs.RetentionDays.ONE_WEEK,
       environment: {
         ANALYSES_TABLE_NAME: analysesTable.tableName,
+        DRY_RUN_SMS: 'true',
       },
       bundling: {
         minify: true,
@@ -82,6 +89,7 @@ export class InfraStack extends cdk.Stack {
     });
 
     analysesTable.grantWriteData(reminderFn);
+    metricsTable.grantReadWriteData(reminderFn);
     reminderFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ['sns:Publish'],
@@ -121,12 +129,15 @@ export class InfraStack extends cdk.Stack {
       logRetention: logs.RetentionDays.ONE_WEEK,
       environment: {
         UPLOAD_BUCKET_NAME: uploadsBucket.bucketName,
+        METRICS_TABLE_NAME: metricsTable.tableName,
       },
       bundling: {
         minify: true,
         sourceMap: true,
       },
     });
+
+    metricsTable.grantReadWriteData(detectFn);
 
     detectFn.addToRolePolicy(
       new iam.PolicyStatement({
@@ -144,12 +155,14 @@ export class InfraStack extends cdk.Stack {
       logRetention: logs.RetentionDays.ONE_WEEK,
       environment: {
         ANALYSES_TABLE_NAME: analysesTable.tableName,
+        METRICS_TABLE_NAME: metricsTable.tableName,
         REMINDER_LAMBDA_ARN: reminderFn.functionArn,
         SCHEDULER_INVOKE_ROLE_ARN: schedulerInvokeRole.roleArn,
         SCHEDULE_GROUP_NAME: scheduleGroup.name as string,
         BEDROCK_MODEL_ID: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
         DRY_RUN_SMS: 'true',
         LEAD_TIME_HOURS: '2',
+        WEATHER_API_KEY: '',
       },
       bundling: {
         minify: true,
@@ -158,6 +171,7 @@ export class InfraStack extends cdk.Stack {
     });
 
     analysesTable.grantWriteData(predictFn);
+    metricsTable.grantReadWriteData(predictFn);
 
     const bedrockModelId = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
     const bedrockModelArn = `arn:${cdk.Aws.PARTITION}:bedrock:${cdk.Aws.REGION}::foundation-model/${bedrockModelId}`;
@@ -248,6 +262,7 @@ export class InfraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'UploadsBucketName', { value: uploadsBucket.bucketName });
     new cdk.CfnOutput(this, 'AnalysesTableName', { value: analysesTable.tableName });
+    new cdk.CfnOutput(this, 'MetricsTableName', { value: metricsTable.tableName });
     new cdk.CfnOutput(this, 'NgoContactsTableName', { value: ngoTable.tableName });
     new cdk.CfnOutput(this, 'SurplusTableName', { value: surplusTable.tableName });
     new cdk.CfnOutput(this, 'HttpApiUrl', { value: httpApi.apiEndpoint });
