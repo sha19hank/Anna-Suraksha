@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Anna Suraksha",
+    "slug": "anna-suraksha",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "annasuraksha",
+    "userInterfaceStyle": "light",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#FAF7F0" },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "in.annasuraksha.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take photos of food to check freshness",
+        "NSPhotoLibraryUsageDescription": "Choose photos of food from your library"
+      }
+    },
+    "android": {
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#1A6B4A" },
+      "package": "in.annasuraksha.app",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": { "typedRoutes": true }
+  }
+}

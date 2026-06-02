@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# CDK
+infra/cdk.out/
+infra/.cdk.staging/
+infra/cdk-outputs.json
+
+# Next.js
+web/.next/
+web/out/
+
+# Expo / React Native
+mobile/.expo/
+mobile/dist/
+mobile/node_modules/
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build artefacts
+*.js.map
+*.d.ts
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

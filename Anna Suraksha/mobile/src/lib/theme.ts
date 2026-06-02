@@ -1,0 +1,35 @@
+// Shared design tokens — single source of truth for both apps
+export const C = {
+  bg:      '#FAF7F0',
+  bgCard:  'rgba(255,255,255,0.70)',
+  bgCard2: 'rgba(255,255,255,0.50)',
+  border:  'rgba(44,24,16,0.08)',
+  border2: 'rgba(44,24,16,0.14)',
+  earth:   '#2C1810',
+  earth60: 'rgba(44,24,16,0.60)',
+  earth40: 'rgba(44,24,16,0.40)',
+  muted:   '#8A7060',
+  faint:   '#B0A898',
+  leaf:    '#1A6B4A',
+  leafDark:'#0F3D2A',
+  leafBg:  'rgba(26,107,74,0.10)',
+  leafBd:  'rgba(26,107,74,0.20)',
+  saffron: '#E8772E',
+  saffDark:'#B85A18',
+  saffBg:  'rgba(232,119,46,0.10)',
+  saffBd:  'rgba(232,119,46,0.25)',
+  cream:   '#FAF7F0',
+  creamDk: '#EDE7D9',
+  red:     '#DC2626',
+  redBg:   'rgba(220,38,38,0.08)',
+  redBd:   'rgba(220,38,38,0.20)',
+  white:   '#FFFFFF',
+} as const;
+
+export const R = {
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 24,
+} as const;
